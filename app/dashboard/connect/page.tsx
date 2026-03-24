@@ -160,9 +160,26 @@ export default function ConnectPage() {
         const text = await res.text().catch(() => "");
         throw new Error(text || `Request failed with status ${res.status}`);
       }
-      // Persist to Clerk unsafeMetadata so the dashboard reflects the connected state
+      // Persist to Clerk unsafeMetadata — append to awsAccounts array
+      const existing = (user?.unsafeMetadata.awsAccounts as object[] | undefined) ?? [];
       await user?.update({
-        unsafeMetadata: { awsAccountId: accountId, region, alertChannel, whatsappNumber, slackWebhook, selectedServices },
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          awsAccounts: [
+            ...existing,
+            {
+              id: crypto.randomUUID(),
+              accountId,
+              region,
+              alertChannel,
+              whatsappNumber,
+              slackWebhook,
+              selectedServices,
+              status: "connected",
+              connectedAt: new Date().toISOString(),
+            },
+          ],
+        },
       });
       setSuccess(true);
     } catch (err: unknown) {
@@ -551,13 +568,9 @@ export default function ConnectPage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-base font-semibold text-zinc-50">You&apos;re connected!</p>
+                  <p className="text-base font-semibold text-zinc-50">AWS account connected!</p>
                   <p className="mt-1 text-sm text-zinc-400">
-                    {alertChannel === "whatsapp" && (
-                      <>Alerts will be sent to <span className="font-mono text-zinc-300">{whatsappNumber}</span> via WhatsApp</>
-                    )}
-                    {alertChannel === "slack" && "Alerts will be posted to your Slack workspace"}
-                    {alertChannel === "both" && "Alerts will be sent via WhatsApp and Slack"}
+                    You can add more accounts from the dashboard.
                   </p>
                 </div>
                 <button
