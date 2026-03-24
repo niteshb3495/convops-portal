@@ -7,10 +7,73 @@ import Link from "next/link";
 
 const REGIONS = [
   { value: "us-east-1", label: "US East (N. Virginia) — us-east-1" },
+  { value: "us-east-2", label: "US East (Ohio) — us-east-2" },
+  { value: "us-west-1", label: "US West (N. California) — us-west-1" },
   { value: "us-west-2", label: "US West (Oregon) — us-west-2" },
-  { value: "eu-west-1", label: "Europe (Ireland) — eu-west-1" },
-  { value: "eu-central-1", label: "Europe (Frankfurt) — eu-central-1" },
+  { value: "af-south-1", label: "Africa (Cape Town) — af-south-1" },
+  { value: "ap-east-1", label: "Asia Pacific (Hong Kong) — ap-east-1" },
+  { value: "ap-south-1", label: "Asia Pacific (Mumbai) — ap-south-1" },
+  { value: "ap-south-2", label: "Asia Pacific (Hyderabad) — ap-south-2" },
   { value: "ap-southeast-1", label: "Asia Pacific (Singapore) — ap-southeast-1" },
+  { value: "ap-southeast-2", label: "Asia Pacific (Sydney) — ap-southeast-2" },
+  { value: "ap-southeast-3", label: "Asia Pacific (Jakarta) — ap-southeast-3" },
+  { value: "ap-southeast-4", label: "Asia Pacific (Melbourne) — ap-southeast-4" },
+  { value: "ap-northeast-1", label: "Asia Pacific (Tokyo) — ap-northeast-1" },
+  { value: "ap-northeast-2", label: "Asia Pacific (Seoul) — ap-northeast-2" },
+  { value: "ap-northeast-3", label: "Asia Pacific (Osaka) — ap-northeast-3" },
+  { value: "ca-central-1", label: "Canada (Central) — ca-central-1" },
+  { value: "ca-west-1", label: "Canada (Calgary) — ca-west-1" },
+  { value: "eu-central-1", label: "Europe (Frankfurt) — eu-central-1" },
+  { value: "eu-central-2", label: "Europe (Zurich) — eu-central-2" },
+  { value: "eu-west-1", label: "Europe (Ireland) — eu-west-1" },
+  { value: "eu-west-2", label: "Europe (London) — eu-west-2" },
+  { value: "eu-west-3", label: "Europe (Paris) — eu-west-3" },
+  { value: "eu-south-1", label: "Europe (Milan) — eu-south-1" },
+  { value: "eu-south-2", label: "Europe (Spain) — eu-south-2" },
+  { value: "eu-north-1", label: "Europe (Stockholm) — eu-north-1" },
+  { value: "il-central-1", label: "Israel (Tel Aviv) — il-central-1" },
+  { value: "me-south-1", label: "Middle East (Bahrain) — me-south-1" },
+  { value: "me-central-1", label: "Middle East (UAE) — me-central-1" },
+  { value: "sa-east-1", label: "South America (São Paulo) — sa-east-1" },
+];
+
+const SERVICES = [
+  {
+    id: "ecs",
+    label: "ECS",
+    description: "Restart services, update task counts",
+    actions: ["ecs:UpdateService", "ecs:StopTask", "ecs:RunTask"],
+  },
+  {
+    id: "ec2",
+    label: "EC2",
+    description: "Reboot and start/stop instances",
+    actions: ["ec2:RebootInstances", "ec2:StartInstances", "ec2:StopInstances"],
+  },
+  {
+    id: "rds",
+    label: "RDS",
+    description: "Reboot database instances and clusters",
+    actions: ["rds:RebootDBInstance", "rds:RebootDBCluster"],
+  },
+  {
+    id: "lambda",
+    label: "Lambda",
+    description: "Invoke functions, update concurrency",
+    actions: ["lambda:InvokeFunction", "lambda:PutFunctionConcurrency", "lambda:DeleteFunctionConcurrency"],
+  },
+  {
+    id: "asg",
+    label: "Auto Scaling",
+    description: "Scale groups up/down",
+    actions: ["autoscaling:SetDesiredCapacity", "autoscaling:UpdateAutoScalingGroup", "autoscaling:ExecutePolicy"],
+  },
+  {
+    id: "ssm",
+    label: "SSM",
+    description: "Run commands on instances via SSM",
+    actions: ["ssm:SendCommand", "ssm:CancelCommand"],
+  },
 ];
 
 const CFN_ENDPOINT = "https://ewvdzp6c79.execute-api.eu-central-1.amazonaws.com/prod/webhook";
@@ -19,12 +82,13 @@ const CFN_TEMPLATE =
 
 type AlertChannel = "whatsapp" | "slack" | "both";
 
-function buildStackUrl(accountId: string, region: string) {
+function buildStackUrl(accountId: string, region: string, selectedServices: string[]) {
   const params = new URLSearchParams({
     templateURL: CFN_TEMPLATE,
     stackName: "convops-setup",
     [`param_ExternalId`]: `CONVOPS-${accountId}`,
     [`param_ConvOpsEndpoint`]: CFN_ENDPOINT,
+    [`param_Services`]: selectedServices.join(","),
   });
   return `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review?${params.toString()}`;
 }
@@ -48,6 +112,7 @@ export default function ConnectPage() {
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [slackWebhook, setSlackWebhook] = useState("");
   const [accountIdError, setAccountIdError] = useState("");
+  const [selectedServices, setSelectedServices] = useState<string[]>(["ecs", "ec2", "rds"]);
 
   // Step 3 state
   const [verifying, setVerifying] = useState(false);
@@ -61,6 +126,12 @@ export default function ConnectPage() {
     !!accountId &&
     (!needsWhatsapp || !!whatsappNumber) &&
     (!needsSlack || !!slackWebhook);
+
+  function toggleService(id: string) {
+    setSelectedServices(prev =>
+      prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
+    );
+  }
 
   function validateAndNext() {
     if (!/^\d{12}$/.test(accountId)) {
@@ -83,7 +154,7 @@ export default function ConnectPage() {
           "Content-Type": "application/json",
           "x-api-key": apiKey ?? "",
         },
-        body: JSON.stringify({ accountId, region, alertChannel, whatsappNumber, slackWebhook }),
+        body: JSON.stringify({ accountId, region, alertChannel, whatsappNumber, slackWebhook, selectedServices }),
       });
       if (!res.ok) {
         const text = await res.text().catch(() => "");
@@ -91,7 +162,7 @@ export default function ConnectPage() {
       }
       // Persist to Clerk unsafeMetadata so the dashboard reflects the connected state
       await user?.update({
-        unsafeMetadata: { awsAccountId: accountId, region, alertChannel, whatsappNumber, slackWebhook },
+        unsafeMetadata: { awsAccountId: accountId, region, alertChannel, whatsappNumber, slackWebhook, selectedServices },
       });
       setSuccess(true);
     } catch (err: unknown) {
@@ -106,6 +177,13 @@ export default function ConnectPage() {
     { value: "slack", label: "Slack" },
     { value: "both", label: "Both" },
   ];
+
+  const writeAccessLabel =
+    selectedServices.length === 0
+      ? "Read-only"
+      : SERVICES.filter(s => selectedServices.includes(s.id))
+          .map(s => s.label)
+          .join(", ");
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50">
@@ -231,6 +309,47 @@ export default function ConnectPage() {
                 </div>
               </div>
 
+              {/* Write Access */}
+              <div>
+                <label className="block text-sm font-medium text-zinc-300 mb-1">
+                  Write Access <span className="text-zinc-500 font-normal">(optional)</span>
+                </label>
+                <p className="text-xs text-zinc-500 mb-3">
+                  Read-only by default. Select services ConvOps can take action on.
+                </p>
+                <div className="space-y-2">
+                  {SERVICES.map((svc) => {
+                    const isSelected = selectedServices.includes(svc.id);
+                    return (
+                      <button
+                        key={svc.id}
+                        type="button"
+                        onClick={() => toggleService(svc.id)}
+                        className={`w-full flex items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors ${
+                          isSelected
+                            ? "border-zinc-500 bg-zinc-800"
+                            : "border-zinc-800 bg-zinc-900 hover:border-zinc-700"
+                        }`}
+                      >
+                        <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                          isSelected ? "border-zinc-400 bg-zinc-400" : "border-zinc-600 bg-transparent"
+                        }`}>
+                          {isSelected && (
+                            <svg className="h-2.5 w-2.5 text-zinc-950" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                            </svg>
+                          )}
+                        </div>
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-200">{svc.label}</span>
+                          <span className="ml-2 text-xs text-zinc-500">{svc.description}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* WhatsApp field */}
               {needsWhatsapp && (
                 <div>
@@ -300,10 +419,14 @@ export default function ConnectPage() {
                 <span className="text-zinc-500 w-32 shrink-0">Alert channel</span>
                 <span className="text-zinc-300">{alertChannelLabel(alertChannel, whatsappNumber)}</span>
               </div>
+              <div className="flex gap-2">
+                <span className="text-zinc-500 w-32 shrink-0">Write access</span>
+                <span className="text-zinc-300">{writeAccessLabel}</span>
+              </div>
             </div>
 
             <a
-              href={buildStackUrl(accountId, region)}
+              href={buildStackUrl(accountId, region, selectedServices)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 w-full rounded-lg bg-amber-500 py-3 text-sm font-semibold text-zinc-950 hover:bg-amber-400 transition-colors"
@@ -366,6 +489,10 @@ export default function ConnectPage() {
                   <div className="flex gap-2">
                     <span className="text-zinc-500 w-32 shrink-0">Alert channel</span>
                     <span className="text-zinc-300">{alertChannelLabel(alertChannel, whatsappNumber)}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="text-zinc-500 w-32 shrink-0">Write access</span>
+                    <span className="text-zinc-300">{writeAccessLabel}</span>
                   </div>
                 </div>
                 <button
