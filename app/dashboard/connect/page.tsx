@@ -17,6 +17,8 @@ const CFN_ENDPOINT = "https://ewvdzp6c79.execute-api.eu-central-1.amazonaws.com/
 const CFN_TEMPLATE =
   "https://convops-cfn-templates.s3.eu-central-1.amazonaws.com/customer-convops-setup.yaml";
 
+type AlertChannel = "whatsapp" | "slack" | "both";
+
 function buildStackUrl(accountId: string, region: string) {
   const params = new URLSearchParams({
     templateURL: CFN_TEMPLATE,
@@ -25,6 +27,12 @@ function buildStackUrl(accountId: string, region: string) {
     [`param_ConvOpsEndpoint`]: CFN_ENDPOINT,
   });
   return `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review?${params.toString()}`;
+}
+
+function alertChannelLabel(channel: AlertChannel, whatsappNumber: string) {
+  if (channel === "whatsapp") return `WhatsApp (${whatsappNumber})`;
+  if (channel === "slack") return "Slack";
+  return "WhatsApp + Slack";
 }
 
 export default function ConnectPage() {
@@ -36,13 +44,23 @@ export default function ConnectPage() {
   // Step 1 fields
   const [accountId, setAccountId] = useState("");
   const [region, setRegion] = useState("eu-central-1");
+  const [alertChannel, setAlertChannel] = useState<AlertChannel>("both");
   const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [slackWebhook, setSlackWebhook] = useState("");
   const [accountIdError, setAccountIdError] = useState("");
 
   // Step 3 state
   const [verifying, setVerifying] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+
+  const needsWhatsapp = alertChannel === "whatsapp" || alertChannel === "both";
+  const needsSlack = alertChannel === "slack" || alertChannel === "both";
+
+  const step1Valid =
+    !!accountId &&
+    (!needsWhatsapp || !!whatsappNumber) &&
+    (!needsSlack || !!slackWebhook);
 
   function validateAndNext() {
     if (!/^\d{12}$/.test(accountId)) {
@@ -65,7 +83,7 @@ export default function ConnectPage() {
           "Content-Type": "application/json",
           "x-api-key": apiKey ?? "",
         },
-        body: JSON.stringify({ accountId, region, whatsappNumber }),
+        body: JSON.stringify({ accountId, region, alertChannel, whatsappNumber, slackWebhook }),
       });
       if (!res.ok) {
         const text = await res.text().catch(() => "");
@@ -73,7 +91,7 @@ export default function ConnectPage() {
       }
       // Persist to Clerk unsafeMetadata so the dashboard reflects the connected state
       await user?.update({
-        unsafeMetadata: { awsAccountId: accountId, region, whatsappNumber },
+        unsafeMetadata: { awsAccountId: accountId, region, alertChannel, whatsappNumber, slackWebhook },
       });
       setSuccess(true);
     } catch (err: unknown) {
@@ -82,6 +100,12 @@ export default function ConnectPage() {
       setVerifying(false);
     }
   }
+
+  const CHANNEL_OPTIONS: { value: AlertChannel; label: string }[] = [
+    { value: "whatsapp", label: "WhatsApp" },
+    { value: "slack", label: "Slack" },
+    { value: "both", label: "Both" },
+  ];
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50">
@@ -184,25 +208,69 @@ export default function ConnectPage() {
                 </select>
               </div>
 
-              {/* WhatsApp */}
+              {/* Alert Channel */}
               <div>
-                <label className="block text-sm font-medium text-zinc-300 mb-1.5">
-                  WhatsApp number for alerts
+                <label className="block text-sm font-medium text-zinc-300 mb-2">
+                  Alert Channel
                 </label>
-                <input
-                  type="tel"
-                  placeholder="+49 151 12345678"
-                  value={whatsappNumber}
-                  onChange={(e) => setWhatsappNumber(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
-                />
-                <p className="mt-1.5 text-xs text-zinc-500">Include country code, e.g. +1 555 000 0000</p>
+                <div className="inline-flex rounded-lg bg-zinc-900 border border-zinc-700 p-0.5 gap-0.5">
+                  {CHANNEL_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setAlertChannel(opt.value)}
+                      className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                        alertChannel === opt.value
+                          ? "bg-white text-zinc-950"
+                          : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              {/* WhatsApp field */}
+              {needsWhatsapp && (
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-1.5">
+                    WhatsApp number for alerts
+                  </label>
+                  <input
+                    type="tel"
+                    placeholder="+49 151 12345678"
+                    value={whatsappNumber}
+                    onChange={(e) => setWhatsappNumber(e.target.value)}
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+                  />
+                  <p className="mt-1.5 text-xs text-zinc-500">Include country code, e.g. +1 555 000 0000</p>
+                </div>
+              )}
+
+              {/* Slack field */}
+              {needsSlack && (
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-1.5">
+                    Slack Incoming Webhook URL
+                  </label>
+                  <p className="text-xs text-zinc-500 mb-2">
+                    Slack integration — enter your Slack webhook URL
+                  </p>
+                  <input
+                    type="url"
+                    placeholder="https://hooks.slack.com/services/..."
+                    value={slackWebhook}
+                    onChange={(e) => setSlackWebhook(e.target.value)}
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 font-mono"
+                  />
+                </div>
+              )}
             </div>
 
             <button
               onClick={validateAndNext}
-              disabled={!accountId || !whatsappNumber}
+              disabled={!step1Valid}
               className="mt-8 w-full rounded-lg bg-zinc-50 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Generate Setup Link
@@ -221,12 +289,16 @@ export default function ConnectPage() {
 
             <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 mb-6 space-y-2 text-sm">
               <div className="flex gap-2">
-                <span className="text-zinc-500 w-24 shrink-0">Account ID</span>
+                <span className="text-zinc-500 w-32 shrink-0">Account ID</span>
                 <span className="font-mono text-zinc-300">{accountId}</span>
               </div>
               <div className="flex gap-2">
-                <span className="text-zinc-500 w-24 shrink-0">Region</span>
+                <span className="text-zinc-500 w-32 shrink-0">Region</span>
                 <span className="font-mono text-zinc-300">{region}</span>
+              </div>
+              <div className="flex gap-2">
+                <span className="text-zinc-500 w-32 shrink-0">Alert channel</span>
+                <span className="text-zinc-300">{alertChannelLabel(alertChannel, whatsappNumber)}</span>
               </div>
             </div>
 
@@ -284,16 +356,16 @@ export default function ConnectPage() {
               <>
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 mb-6 space-y-2 text-sm">
                   <div className="flex gap-2">
-                    <span className="text-zinc-500 w-28 shrink-0">Account ID</span>
+                    <span className="text-zinc-500 w-32 shrink-0">Account ID</span>
                     <span className="font-mono text-zinc-300">{accountId}</span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-zinc-500 w-28 shrink-0">Region</span>
+                    <span className="text-zinc-500 w-32 shrink-0">Region</span>
                     <span className="font-mono text-zinc-300">{region}</span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-zinc-500 w-28 shrink-0">WhatsApp</span>
-                    <span className="font-mono text-zinc-300">{whatsappNumber}</span>
+                    <span className="text-zinc-500 w-32 shrink-0">Alert channel</span>
+                    <span className="text-zinc-300">{alertChannelLabel(alertChannel, whatsappNumber)}</span>
                   </div>
                 </div>
                 <button
@@ -354,8 +426,11 @@ export default function ConnectPage() {
                 <div>
                   <p className="text-base font-semibold text-zinc-50">You&apos;re connected!</p>
                   <p className="mt-1 text-sm text-zinc-400">
-                    Alerts will be sent to{" "}
-                    <span className="font-mono text-zinc-300">{whatsappNumber}</span>
+                    {alertChannel === "whatsapp" && (
+                      <>Alerts will be sent to <span className="font-mono text-zinc-300">{whatsappNumber}</span> via WhatsApp</>
+                    )}
+                    {alertChannel === "slack" && "Alerts will be posted to your Slack workspace"}
+                    {alertChannel === "both" && "Alerts will be sent via WhatsApp and Slack"}
                   </p>
                 </div>
                 <button
