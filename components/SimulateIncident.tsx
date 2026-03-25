@@ -81,7 +81,7 @@ export default function SimulateIncident({ isPro, onDemoComplete }: SimulateInci
   const [stage, setStage] = useState<Stage>("idle");
   const [scenario] = useState(() => SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)]);
   const [investigationStep, setInvestigationStep] = useState(0);
-  // upgradeOpen state moved to ActionButton component
+
 
   function reset() {
     setStage("idle");
@@ -115,12 +115,6 @@ export default function SimulateIncident({ isPro, onDemoComplete }: SimulateInci
 
   return (
     <>
-      <UpgradeModal
-        open={upgradeOpen}
-        onClose={() => setUpgradeOpen(false)}
-        actionLabel={scenario.action}
-      />
-
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 mb-6">
         {/* Header row */}
         <div className="flex items-center justify-between gap-4 mb-4">
