@@ -34,8 +34,12 @@ const SCENARIOS = [
       "Container api-worker-3 stopped with reason: OutOfMemoryError (limit: 512MB). Memory rose from 340MB → 620MB over 8 min before the task was killed. 1 of 4 tasks currently in STOPPED state.",
     explanation:
       "ConvOps detected the OOM stop reason from ECS task metadata and confirmed the memory spike in CloudWatch metrics. A deploy event (v2.4.1) was logged 23 minutes before the spike — this is likely related, but ConvOps cannot confirm the code-level cause. You'll need to check the deploy diff or enable a profiler to find the root cause in code.",
-    suggestedFix: "Restart the ECS service to restore all 4 tasks to RUNNING and recover capacity now. Investigate the v2.4.1 deploy separately.",
-    action: "Restart ECS service — api-service",
+    urgency: "This issue is actively impacting service performance — 1 task down, error rate at 5% and rising.",
+    suggestedFix: "Restart the ECS service to cycle the stopped container and restore all 4 tasks to RUNNING.",
+    whatWillHappen: "ECS will stop and replace all running tasks, cycling the container that hit the OOM limit.",
+    whyItHelps: "Restarting clears the memory state of the faulty container, returning all 4 tasks to a healthy running state and stopping the error spike.",
+    expectedOutcome: "ErrorRate drops back to baseline (<0.1%). All 4 tasks RUNNING. Full capacity restored in ~60 seconds.",
+    action: "Run fix now — Restart ECS service",
     resolvedMessage: "✅ ECS service restarted. All 4 tasks RUNNING. ErrorRate back to 0.1%. Capacity restored — investigate v2.4.1 deploy when ready.",
   },
   {
@@ -55,8 +59,12 @@ const SCENARIOS = [
       "Lambda avg duration: 27.8s (limit: 30s). RDS CPU: 94%. RDS connection count: 487/500. Timeouts started 14 minutes ago, correlating with RDS connection saturation. 3 other Lambdas share the same RDS instance.",
     explanation:
       "ConvOps can see that Lambda is timing out and that RDS connections are nearly exhausted at the same time — the correlation is strong. What ConvOps cannot tell you: why connections are being held open. That requires inspecting your application code (e.g. missing connection release in error paths). The RDS reboot will clear stale connections and restore availability now.",
-    suggestedFix: "Reboot RDS to clear the connection pool and restore Lambda response times. Then audit connection handling in your application code.",
-    action: "Reboot RDS instance — payments-db",
+    urgency: "Payment processing is timing out — users are experiencing failed transactions right now.",
+    suggestedFix: "Reboot RDS to clear the saturated connection pool and restore Lambda response times.",
+    whatWillHappen: "RDS will reboot (typically 1–2 min downtime), clearing all active and stale connections. The pool resets to 0.",
+    whyItHelps: "With the connection pool cleared, Lambdas can acquire fresh connections immediately instead of queuing and timing out.",
+    expectedOutcome: "Lambda avg duration drops from 27.8s back to <500ms. Connection count resets to ~10/500. Payment processing restored.",
+    action: "Run fix now — Reboot RDS instance",
     resolvedMessage: "✅ RDS rebooted. Connection count: 12/500. Lambda avg duration back to 340ms. Payment processing restored — audit connection handling when ready.",
   },
 ];
@@ -265,10 +273,35 @@ export default function SimulateIncident({ isPro }: SimulateIncidentProps) {
               <p className="text-sm text-zinc-400 leading-relaxed">{scenario.explanation}</p>
             </div>
 
-            {/* Suggested fix + action */}
-            <div className="rounded-lg border border-indigo-800/40 bg-indigo-950/10 px-5 py-4">
-              <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wide mb-2">Suggested Fix</p>
-              <p className="text-sm text-zinc-300 leading-relaxed mb-4">{scenario.suggestedFix}</p>
+            {/* Urgency + Suggested fix + action */}
+            <div className="rounded-lg border border-red-900/40 bg-red-950/10 px-4 py-3 flex items-start gap-2">
+              <svg className="h-3.5 w-3.5 text-red-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              </svg>
+              <p className="text-xs text-red-300">{scenario.urgency}</p>
+            </div>
+
+            <div className="rounded-lg border border-indigo-800/40 bg-indigo-950/10 px-5 py-4 space-y-4">
+              <div>
+                <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wide mb-1.5">Suggested Fix</p>
+                <p className="text-sm font-medium text-zinc-200 leading-relaxed">{scenario.suggestedFix}</p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 px-3 py-2.5">
+                  <p className="text-xs font-semibold text-zinc-500 mb-1">What will happen</p>
+                  <p className="text-xs text-zinc-400 leading-relaxed">{scenario.whatWillHappen}</p>
+                </div>
+                <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 px-3 py-2.5">
+                  <p className="text-xs font-semibold text-zinc-500 mb-1">Why it helps</p>
+                  <p className="text-xs text-zinc-400 leading-relaxed">{scenario.whyItHelps}</p>
+                </div>
+                <div className="rounded-lg bg-emerald-950/30 border border-emerald-900/40 px-3 py-2.5">
+                  <p className="text-xs font-semibold text-emerald-600 mb-1">Expected outcome</p>
+                  <p className="text-xs text-emerald-400/80 leading-relaxed">{scenario.expectedOutcome}</p>
+                </div>
+              </div>
+
               {stage === "results" && (
                 <div>
                   <p className="text-xs text-zinc-500 mb-3 flex items-center gap-1.5">
@@ -279,7 +312,7 @@ export default function SimulateIncident({ isPro }: SimulateIncidentProps) {
                   </p>
                   <button
                     onClick={handleActionClick}
-                    className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
+                    className="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
