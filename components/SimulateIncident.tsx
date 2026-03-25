@@ -270,16 +270,24 @@ export default function SimulateIncident({ isPro }: SimulateIncidentProps) {
               <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wide mb-2">Suggested Fix</p>
               <p className="text-sm text-zinc-300 leading-relaxed mb-4">{scenario.suggestedFix}</p>
               {stage === "results" && (
-                <button
-                  onClick={handleActionClick}
-                  className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
-                  </svg>
-                  {scenario.action}
-                  {!isPro && <span className="ml-1 rounded-full bg-amber-500/20 border border-amber-500/30 px-1.5 py-0.5 text-xs text-amber-400">Pro</span>}
-                </button>
+                <div>
+                  <p className="text-xs text-zinc-500 mb-3 flex items-center gap-1.5">
+                    <svg className="h-3 w-3 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                    You are in control — no action is taken without your confirmation.
+                  </p>
+                  <button
+                    onClick={handleActionClick}
+                    className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
+                    </svg>
+                    {scenario.action}
+                    {!isPro && <span className="ml-1 rounded-full bg-amber-500/20 border border-amber-500/30 px-1.5 py-0.5 text-xs text-amber-400">Pro</span>}
+                  </button>
+                </div>
               )}
               {stage === "confirming" && (
                 <div className="space-y-3">

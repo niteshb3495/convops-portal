@@ -200,7 +200,10 @@ export default function AccountCard({ account }: { account: AwsAccount }) {
               {/* Demo action buttons — shown when account is connected */}
               {account.status === "connected" && (
                 <div className="mt-4">
-                  <p className="text-xs text-zinc-500 mb-2">Quick actions</p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs text-zinc-500">Quick actions</p>
+                    <p className="text-xs text-zinc-600">You are in control — no action runs without your confirmation.</p>
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {DEMO_ACTIONS.map((action) => (
                       <button

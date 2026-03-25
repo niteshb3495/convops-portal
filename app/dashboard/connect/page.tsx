@@ -258,9 +258,20 @@ export default function ConnectPage() {
         {step === 1 && (
           <div>
             <h1 className="text-xl font-bold text-zinc-50 mb-1">Enter your AWS details</h1>
-            <p className="text-sm text-zinc-400 mb-8">
+            <p className="text-sm text-zinc-400 mb-4">
               We&apos;ll use these to set up the ConvOps stack in your account.
             </p>
+
+            {/* Trust banner */}
+            <div className="flex items-start gap-3 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 mb-6">
+              <svg className="h-4 w-4 text-emerald-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+              </svg>
+              <div>
+                <p className="text-sm font-medium text-zinc-200">Read-only access by default</p>
+                <p className="text-xs text-zinc-500 mt-0.5">ConvOps requests read access to CloudWatch, logs, and resource metadata. No changes are made to your infrastructure without your explicit approval.</p>
+              </div>
+            </div>
 
             <div className="space-y-5">
               {/* Account ID */}
@@ -419,6 +430,27 @@ export default function ConnectPage() {
             >
               Generate Setup Link
             </button>
+
+            <div className="mt-4 flex items-center justify-center gap-4 text-xs text-zinc-600">
+              <span className="flex items-center gap-1">
+                <svg className="h-3 w-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                Read-only by default
+              </span>
+              <span className="flex items-center gap-1">
+                <svg className="h-3 w-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                No auto-actions
+              </span>
+              <span className="flex items-center gap-1">
+                <svg className="h-3 w-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                Full audit log
+              </span>
+            </div>
           </div>
         )}
 
