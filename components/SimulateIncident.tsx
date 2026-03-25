@@ -5,6 +5,7 @@ import UpgradeModal from "@/components/UpgradeModal";
 
 interface SimulateIncidentProps {
   isPro: boolean;
+  onDemoComplete?: () => void;
 }
 
 type Stage =
@@ -71,7 +72,7 @@ const SCENARIOS = [
 
 const STEP_DELAY = 800; // ms between investigation steps
 
-export default function SimulateIncident({ isPro }: SimulateIncidentProps) {
+export default function SimulateIncident({ isPro, onDemoComplete }: SimulateIncidentProps) {
   const [stage, setStage] = useState<Stage>("idle");
   const [scenario] = useState(() => SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)]);
   const [investigationStep, setInvestigationStep] = useState(0);
@@ -110,6 +111,8 @@ export default function SimulateIncident({ isPro }: SimulateIncidentProps) {
 
   async function handleConfirm() {
     setStage("resolved");
+    // Notify parent that demo is complete (advances onboarding step)
+    onDemoComplete?.();
   }
 
   return (
