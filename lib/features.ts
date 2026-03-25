@@ -22,7 +22,7 @@ export interface FeatureFlags {
 
 // Global default — change this to roll out actions to all users
 const GLOBAL_DEFAULTS: FeatureFlags = {
-  actions_enabled: true, // true = available (gated by plan), "preview" = teaser, false = hidden
+  actions_enabled: false, // false = hidden until Pro plan launches. Change to true to release.
 };
 
 /**
