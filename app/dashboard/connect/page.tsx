@@ -411,10 +411,10 @@ export default function ConnectPage() {
             <h1 className="text-xl font-bold text-zinc-50 mb-1">Launch CloudFormation Stack</h1>
             <p className="text-sm text-zinc-400 mb-6">
               Click Launch Stack — it opens in your AWS console and takes about 2 minutes.
-              While it deploys, choose which services ConvOps can act on.
             </p>
 
-            {/* Write Access — moved here so Step 1 is frictionless */}
+            {/* ACTIONS_DISABLED — Write Access selector hidden until Pro plan launches.
+                To re-enable: uncomment this entire block.
             <div className="mb-6">
               <label className="block text-sm font-medium text-zinc-300 mb-1">
                 Write Access <span className="text-zinc-500 font-normal">(optional — you can skip and add later)</span>
@@ -423,9 +423,6 @@ export default function ConnectPage() {
                 Read-only by default. Select services ConvOps can take action on when you reply to an alert.
               </p>
               <div className="flex items-start gap-2 rounded-lg border border-amber-800/50 bg-amber-950/30 px-3 py-2.5 mb-3">
-                <svg className="h-3.5 w-3.5 text-amber-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                </svg>
                 <p className="text-xs text-amber-300/80">
                   <span className="font-semibold text-amber-300">EKS note:</span> Alerts and AI analysis work for EKS via CloudWatch Container Insights. Pod restarts and rollbacks are not yet supported.
                 </p>
@@ -434,24 +431,10 @@ export default function ConnectPage() {
                 {SERVICES.map((svc) => {
                   const isSelected = selectedServices.includes(svc.id);
                   return (
-                    <button
-                      key={svc.id}
-                      type="button"
-                      onClick={() => toggleService(svc.id)}
-                      className={`w-full flex items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors ${
-                        isSelected
-                          ? "border-zinc-500 bg-zinc-800"
-                          : "border-zinc-800 bg-zinc-900 hover:border-zinc-700"
-                      }`}
-                    >
-                      <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
-                        isSelected ? "border-zinc-400 bg-zinc-400" : "border-zinc-600 bg-transparent"
-                      }`}>
-                        {isSelected && (
-                          <svg className="h-2.5 w-2.5 text-zinc-950" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                          </svg>
-                        )}
+                    <button key={svc.id} type="button" onClick={() => toggleService(svc.id)}
+                      className={`w-full flex items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors ${isSelected ? "border-zinc-500 bg-zinc-800" : "border-zinc-800 bg-zinc-900 hover:border-zinc-700"}`}>
+                      <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${isSelected ? "border-zinc-400 bg-zinc-400" : "border-zinc-600 bg-transparent"}`}>
+                        {isSelected && <svg className="h-2.5 w-2.5 text-zinc-950" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>}
                       </div>
                       <div>
                         <span className="text-sm font-semibold text-zinc-200">{svc.label}</span>
@@ -462,6 +445,7 @@ export default function ConnectPage() {
                 })}
               </div>
             </div>
+            */}
 
             <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 mb-6 space-y-2 text-sm">
               <div className="flex gap-2">
