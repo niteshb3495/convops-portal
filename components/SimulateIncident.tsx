@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import UpgradeModal from "@/components/UpgradeModal";
+import ActionButton from "@/components/ActionButton";
+import { getFeatureFlags } from "@/lib/features";
+import { useUser } from "@clerk/nextjs";
 
 interface SimulateIncidentProps {
   isPro: boolean;
@@ -73,15 +75,17 @@ const SCENARIOS = [
 const STEP_DELAY = 800; // ms between investigation steps
 
 export default function SimulateIncident({ isPro, onDemoComplete }: SimulateIncidentProps) {
+  const { user } = useUser();
+  const flags = getFeatureFlags(user?.unsafeMetadata ?? {});
+
   const [stage, setStage] = useState<Stage>("idle");
   const [scenario] = useState(() => SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)]);
   const [investigationStep, setInvestigationStep] = useState(0);
-  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  // upgradeOpen state moved to ActionButton component
 
   function reset() {
     setStage("idle");
     setInvestigationStep(0);
-    setUpgradeOpen(false);
   }
 
   async function runSimulation() {
@@ -101,13 +105,7 @@ export default function SimulateIncident({ isPro, onDemoComplete }: SimulateInci
     setStage("results");
   }
 
-  function handleActionClick() {
-    if (!isPro) {
-      setUpgradeOpen(true);
-    } else {
-      setStage("confirming");
-    }
-  }
+
 
   async function handleConfirm() {
     setStage("resolved");
@@ -313,16 +311,14 @@ export default function SimulateIncident({ isPro, onDemoComplete }: SimulateInci
                     </svg>
                     You are in control — no action is taken without your confirmation.
                   </p>
-                  <button
-                    onClick={handleActionClick}
-                    className="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
-                    </svg>
-                    {scenario.action}
-                    {!isPro && <span className="ml-1 rounded-full bg-amber-500/20 border border-amber-500/30 px-1.5 py-0.5 text-xs text-amber-400">Pro</span>}
-                  </button>
+                  <ActionButton
+                    label={scenario.action}
+                    actionsFlag={flags.actions_enabled}
+                    isPro={isPro}
+                    onExecute={async () => {
+                      setStage("confirming");
+                    }}
+                  />
                 </div>
               )}
               {stage === "confirming" && (
