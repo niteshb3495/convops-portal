@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { SignOutButton } from "@clerk/nextjs";
 import Link from "next/link";
 import AccountCard from "./AccountCard";
+import SimulateIncidentWrapper from "./SimulateIncidentWrapper";
 import { getUserPlan } from "@/lib/plan";
 
 interface AwsAccount {
@@ -84,6 +85,10 @@ export default async function DashboardPage() {
 
       {/* Main content */}
       <main className="mx-auto max-w-5xl px-6 py-10">
+
+        {/* Simulate incident — always visible, drives aha moment */}
+        <SimulateIncidentWrapper isPro={isPro} />
+
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold text-zinc-50">AWS Accounts</h1>
           {accounts.length > 0 && (
