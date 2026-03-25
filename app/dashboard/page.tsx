@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { SignOutButton } from "@clerk/nextjs";
 import Link from "next/link";
 import AccountCard from "./AccountCard";
+import { getUserPlan } from "@/lib/plan";
 
 interface AwsAccount {
   id: string;
@@ -26,6 +27,8 @@ export default async function DashboardPage() {
   const email = user.emailAddresses[0]?.emailAddress ?? "";
   const meta = user.unsafeMetadata as { awsAccounts?: AwsAccount[] };
   const accounts = (meta.awsAccounts ?? []).filter((a) => a.status !== "removed");
+  const plan = getUserPlan(user.unsafeMetadata);
+  const isPro = plan === "pro";
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50">
@@ -38,6 +41,19 @@ export default async function DashboardPage() {
             <span className="text-lg font-semibold text-zinc-300">Dashboard</span>
           </div>
           <div className="flex items-center gap-4">
+            {/* Plan badge */}
+            {isPro ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-950 border border-amber-700 px-2.5 py-1 text-xs font-semibold text-amber-400">
+                ⚡ Pro
+              </span>
+            ) : (
+              <Link
+                href="mailto:nitesh@convops.io?subject=ConvOps Pro Upgrade"
+                className="inline-flex items-center gap-1 rounded-full bg-zinc-800 border border-zinc-600 px-2.5 py-1 text-xs font-medium text-zinc-300 hover:border-amber-600 hover:text-amber-400 transition-colors"
+              >
+                Free · Upgrade to Pro
+              </Link>
+            )}
             <span className="text-sm text-zinc-400">{email}</span>
             <SignOutButton redirectUrl="/">
               <button className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-300 hover:border-zinc-500 hover:text-zinc-50 transition-colors">
@@ -48,13 +64,29 @@ export default async function DashboardPage() {
         </div>
       </header>
 
+      {/* Free plan info banner */}
+      {!isPro && accounts.length > 0 && (
+        <div className="border-b border-zinc-800 bg-zinc-900/50 px-6 py-3">
+          <div className="mx-auto max-w-5xl flex items-center justify-between gap-4">
+            <p className="text-sm text-zinc-400">
+              <span className="font-medium text-zinc-300">Free plan:</span> Alerts, investigations, and root cause analysis are fully included.
+              Upgrade to Pro to execute actions from chat.
+            </p>
+            <Link
+              href="mailto:nitesh@convops.io?subject=ConvOps Pro Upgrade"
+              className="shrink-0 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-950 hover:bg-amber-400 transition-colors"
+            >
+              Upgrade to Pro
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Main content */}
       <main className="mx-auto max-w-5xl px-6 py-10">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold text-zinc-50">AWS Accounts</h1>
           {accounts.length > 0 && (
-            // TODO: For Solo plan — disable if 1 account exists and show tooltip "Upgrade to Team for multiple accounts"
-            // Currently always enabled (no plan detection yet)
             <Link
               href="/dashboard/connect"
               className="rounded-lg bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-white transition-colors"
@@ -83,14 +115,17 @@ export default async function DashboardPage() {
               </svg>
             </div>
             <h2 className="text-lg font-semibold text-zinc-100 mb-1">Connect your first AWS account</h2>
-            <p className="text-sm text-zinc-400 mb-6 max-w-sm">
-              Connect your first AWS account to get started.
+            <p className="text-sm text-zinc-400 mb-2 max-w-sm">
+              Free plan includes alerts, full AI investigation, and root cause analysis.
+            </p>
+            <p className="text-xs text-zinc-500 mb-6 max-w-sm">
+              No credit card required.
             </p>
             <Link
               href="/dashboard/connect"
               className="rounded-lg bg-zinc-50 px-5 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-white transition-colors"
             >
-              Connect AWS Account
+              Connect AWS Account — Free
             </Link>
           </div>
         ) : (
