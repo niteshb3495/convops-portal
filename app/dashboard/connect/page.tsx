@@ -195,7 +195,7 @@ export default function ConnectPage() {
     { value: "both", label: "Both" },
   ];
 
-  const writeAccessLabel = "Read-only (CloudWatch, logs, resource metadata)";
+  const writeAccessLabel = "Read-only";
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50">
