@@ -305,14 +305,15 @@ export default function SimulateIncident({ isPro, onDemoComplete }: SimulateInci
                     </svg>
                     You are in control — no action is taken without your confirmation.
                   </p>
-                  <ActionButton
-                    label={scenario.action}
-                    actionsFlag={flags.actions_enabled}
-                    isPro={isPro}
-                    onExecute={async () => {
-                      setStage("confirming");
-                    }}
-                  />
+                  <button
+                    onClick={() => setStage("confirming")}
+                    className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
+                    </svg>
+                    {scenario.action}
+                  </button>
                 </div>
               )}
               {stage === "confirming" && (
