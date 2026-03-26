@@ -116,6 +116,7 @@ export default function ConnectPage() {
   const [verifying, setVerifying] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [snsTopicArn, setSnsTopicArn] = useState("");
 
   const needsWhatsapp = alertChannel === "whatsapp" || alertChannel === "both";
   const needsSlack = alertChannel === "slack" || alertChannel === "both";
@@ -152,7 +153,7 @@ export default function ConnectPage() {
           "Content-Type": "application/json",
           "x-api-key": apiKey ?? "",
         },
-        body: JSON.stringify({ wa_phone: whatsappNumber, accountId, region, alertChannel, slackWebhook }),
+        body: JSON.stringify({ wa_phone: whatsappNumber, accountId, region, alertChannel, slackWebhook, snsTopicArn }),
       });
       if (!res.ok) {
         const text = await res.text().catch(() => "");
@@ -529,9 +530,24 @@ export default function ConnectPage() {
                     <span className="text-zinc-300">{writeAccessLabel}</span>
                   </div>
                 </div>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">
+                    SNS Topic ARN
+                    <span className="text-zinc-500 font-normal ml-1">(from CloudFormation Outputs)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={snsTopicArn}
+                    onChange={e => setSnsTopicArn(e.target.value)}
+                    placeholder="arn:aws:sns:eu-central-1:722402389636:ConvOpsAlerts"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm font-mono text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
+                  />
+                  <p className="mt-1.5 text-xs text-zinc-500">Find this in AWS Console → CloudFormation → convops-setup → Outputs → SNSTopicArn</p>
+                </div>
                 <button
                   onClick={verify}
-                  className="w-full rounded-lg bg-zinc-50 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-white transition-colors"
+                  disabled={!snsTopicArn}
+                  className="w-full rounded-lg bg-zinc-50 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Verify connection
                 </button>
