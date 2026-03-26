@@ -26,6 +26,28 @@ export default function AccountCard({ account }: { account: AwsAccount }) {
   const { user } = useUser();
   const router = useRouter();
   const [removing, setRemoving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
+
+  async function handleTestAlert() {
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_CONVOPS_API_URL;
+      const apiKey = process.env.NEXT_PUBLIC_CONVOPS_API_KEY;
+      const res = await fetch(`${apiUrl}/test-alert`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": apiKey ?? "" },
+        body: JSON.stringify({ accountId: account.accountId, region: account.region }),
+      });
+      setTestResult(res.ok ? "success" : "error");
+    } catch {
+      setTestResult("error");
+    } finally {
+      setTesting(false);
+      setTimeout(() => setTestResult(null), 5000);
+    }
+  }
 
   async function handleRemove() {
     if (!user) return;
@@ -115,13 +137,37 @@ export default function AccountCard({ account }: { account: AwsAccount }) {
               </div>
             </dl>
 
-            {/* Waiting for first alert — shown when connected, no incidents yet */}
+            {/* Test alert button — shown when connected */}
             {account.status === "connected" && (
-              <div className="mt-4 rounded-lg border border-zinc-800 bg-zinc-900/50 px-4 py-3">
-                <p className="text-xs text-zinc-500">
-                  ✅ Monitoring active — ConvOps will alert you when CloudWatch fires an URGENT alarm.
-                  Actions become available during a live incident.
-                </p>
+              <div className="mt-4 flex items-center gap-3">
+                <button
+                  onClick={handleTestAlert}
+                  disabled={testing}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:border-indigo-600 hover:text-indigo-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {testing ? (
+                    <>
+                      <svg className="h-3 w-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                      </svg>
+                      Sending…
+                    </>
+                  ) : (
+                    <>
+                      <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                      </svg>
+                      Send test alert
+                    </>
+                  )}
+                </button>
+                {testResult === "success" && (
+                  <span className="text-xs text-emerald-400">✅ Test alert sent — check WhatsApp</span>
+                )}
+                {testResult === "error" && (
+                  <span className="text-xs text-red-400">❌ Failed — check your setup</span>
+                )}
               </div>
             )}
           </div>
