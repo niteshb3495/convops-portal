@@ -86,9 +86,7 @@ function buildStackUrl(accountId: string, region: string, selectedServices: stri
   const params = new URLSearchParams({
     templateURL: CFN_TEMPLATE,
     stackName: "convops-setup",
-    [`param_ExternalId`]: `CONVOPS-${accountId}`,
-    [`param_ConvOpsEndpoint`]: CFN_ENDPOINT,
-    [`param_Services`]: selectedServices.join(","),
+    [`param_CustomerExternalId`]: `CONVOPS-${accountId}`,
   });
   return `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review?${params.toString()}`;
 }
