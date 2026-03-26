@@ -61,8 +61,6 @@ export default function AccountCard({ account }: { account: AwsAccount }) {
       unsafeMetadata: {
         ...user.unsafeMetadata,
         awsAccounts: updated,
-        // Reset onboarding so Connect AWS shows again
-        onboardingStep: remaining.length === 0 ? "connect" : user.unsafeMetadata.onboardingStep,
       },
     });
     router.refresh();

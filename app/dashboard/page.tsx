@@ -3,9 +3,7 @@ import { redirect } from "next/navigation";
 import { SignOutButton } from "@clerk/nextjs";
 import Link from "next/link";
 import AccountCard from "./AccountCard";
-import OnboardingSection from "./OnboardingSection";
 import { getUserPlan } from "@/lib/plan";
-import { getOnboardingStep } from "@/lib/onboarding";
 
 interface AwsAccount {
   id: string;
@@ -31,10 +29,6 @@ export default async function DashboardPage() {
   const accounts = (meta.awsAccounts ?? []).filter((a) => a.status !== "removed");
   const plan = getUserPlan(user.unsafeMetadata);
   const isPro = plan === "pro";
-  const onboardingStep = getOnboardingStep(user.unsafeMetadata, accounts.length > 0);
-
-  // Advance onboarding to "demo" automatically when AWS is connected
-  // (handled client-side via OnboardingSection which reads the step)
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50">
@@ -72,8 +66,8 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      {/* Free plan info banner — only show after onboarding */}
-      {!isPro && onboardingStep === "live" && (
+      {/* Free plan banner */}
+      {!isPro && accounts.length > 0 && (
         <div className="border-b border-zinc-800 bg-zinc-900/50 px-6 py-3">
           <div className="mx-auto max-w-5xl flex items-center justify-between gap-4">
             <p className="text-sm text-zinc-400">
@@ -93,9 +87,6 @@ export default async function DashboardPage() {
       {/* Main content */}
       <main className="mx-auto max-w-5xl px-6 py-10">
 
-        {/* Onboarding section — progress + contextual next step */}
-        <OnboardingSection initialStep={onboardingStep} isPro={isPro} />
-
         {/* AWS Accounts */}
         {accounts.length > 0 ? (
           <>
@@ -114,7 +105,7 @@ export default async function DashboardPage() {
               ))}
             </div>
           </>
-        ) : onboardingStep === "live" && (
+        ) : (
           <div className="rounded-xl border border-dashed border-zinc-700 px-6 py-10 text-center">
             <p className="text-sm text-zinc-500 mb-4">No AWS accounts connected.</p>
             <Link
