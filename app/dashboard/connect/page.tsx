@@ -152,7 +152,7 @@ export default function ConnectPage() {
           "Content-Type": "application/json",
           "x-api-key": apiKey ?? "",
         },
-        body: JSON.stringify({ accountId, region, alertChannel, whatsappNumber, slackWebhook, selectedServices }),
+        body: JSON.stringify({ wa_phone: whatsappNumber, accountId, region, alertChannel, slackWebhook }),
       });
       if (!res.ok) {
         const text = await res.text().catch(() => "");
