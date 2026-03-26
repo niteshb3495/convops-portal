@@ -37,7 +37,7 @@ export default function AccountCard({ account }: { account: AwsAccount }) {
       const apiKey = process.env.NEXT_PUBLIC_CONVOPS_API_KEY;
       const res = await fetch(`${apiUrl}/test-alert`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-api-key": apiKey ?? "" },
+        headers: { "Content-Type": "application/json", "x-api-key": apiKey ?? "", "X-Api-Key": apiKey ?? "" },
         body: JSON.stringify({ accountId: account.accountId, region: account.region }),
       });
       setTestResult(res.ok ? "success" : "error");
