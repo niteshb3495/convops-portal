@@ -195,12 +195,7 @@ export default function ConnectPage() {
     { value: "both", label: "Both" },
   ];
 
-  const writeAccessLabel =
-    selectedServices.length === 0
-      ? "Read-only"
-      : SERVICES.filter(s => selectedServices.includes(s.id))
-          .map(s => s.label)
-          .join(", ");
+  const writeAccessLabel = "Read-only (CloudWatch, logs, resource metadata)";
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50">
@@ -461,7 +456,7 @@ export default function ConnectPage() {
                 <span className="text-zinc-300">{alertChannelLabel(alertChannel, whatsappNumber)}</span>
               </div>
               <div className="flex gap-2">
-                <span className="text-zinc-500 w-32 shrink-0">Write access</span>
+                <span className="text-zinc-500 w-32 shrink-0">Access</span>
                 <span className="text-zinc-300">{writeAccessLabel}</span>
               </div>
             </div>
@@ -532,7 +527,7 @@ export default function ConnectPage() {
                     <span className="text-zinc-300">{alertChannelLabel(alertChannel, whatsappNumber)}</span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-zinc-500 w-32 shrink-0">Write access</span>
+                    <span className="text-zinc-500 w-32 shrink-0">Access</span>
                     <span className="text-zinc-300">{writeAccessLabel}</span>
                   </div>
                 </div>
