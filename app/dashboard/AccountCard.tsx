@@ -31,12 +31,16 @@ export default function AccountCard({ account }: { account: AwsAccount }) {
     if (!user) return;
     setRemoving(true);
     const existing = (user.unsafeMetadata.awsAccounts as AwsAccount[]) ?? [];
+    const updated = existing.map((a) =>
+      a.id === account.id ? { ...a, status: "removed" } : a
+    );
+    const remaining = updated.filter((a) => a.status !== "removed");
     await user.update({
       unsafeMetadata: {
         ...user.unsafeMetadata,
-        awsAccounts: existing.map((a) =>
-          a.id === account.id ? { ...a, status: "removed" } : a
-        ),
+        awsAccounts: updated,
+        // Reset onboarding so Connect AWS shows again
+        onboardingStep: remaining.length === 0 ? "connect" : user.unsafeMetadata.onboardingStep,
       },
     });
     router.refresh();

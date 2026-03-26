@@ -97,7 +97,7 @@ export default async function DashboardPage() {
         <OnboardingSection initialStep={onboardingStep} isPro={isPro} />
 
         {/* AWS Accounts */}
-        {accounts.length > 0 && (
+        {accounts.length > 0 ? (
           <>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-zinc-50">AWS Accounts</h2>
@@ -114,6 +114,16 @@ export default async function DashboardPage() {
               ))}
             </div>
           </>
+        ) : onboardingStep === "live" && (
+          <div className="rounded-xl border border-dashed border-zinc-700 px-6 py-10 text-center">
+            <p className="text-sm text-zinc-500 mb-4">No AWS accounts connected.</p>
+            <Link
+              href="/dashboard/connect"
+              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
+            >
+              + Connect AWS Account
+            </Link>
+          </div>
         )}
 
       </main>
