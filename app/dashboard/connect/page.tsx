@@ -78,7 +78,7 @@ const SERVICES = [
 
 const CFN_ENDPOINT = "https://ewvdzp6c79.execute-api.eu-central-1.amazonaws.com/prod/webhook";
 const CFN_TEMPLATE =
-  "https://convops-cfn-templates.s3.eu-central-1.amazonaws.com/customer-convops-setup.yaml";
+  "https://convops-cf-templates.s3.eu-central-1.amazonaws.com/customer-convops-setup.yaml";
 
 type AlertChannel = "whatsapp" | "slack" | "both";
 
