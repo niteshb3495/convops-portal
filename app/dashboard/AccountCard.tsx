@@ -42,10 +42,7 @@ export default function AccountCard({ account }: { account: AwsAccount }) {
     router.refresh();
   }
 
-  const serviceLabels =
-    account.selectedServices.length === 0
-      ? []
-      : account.selectedServices.map((s) => s.toUpperCase());
+  const serviceLabels: string[] = [];
 
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
@@ -90,7 +87,7 @@ export default function AccountCard({ account }: { account: AwsAccount }) {
                 <dd className="font-mono text-zinc-300">{account.region}</dd>
               </div>
               <div className="flex items-start gap-2">
-                <dt className="text-zinc-500 w-28 shrink-0 mt-0.5">Write access</dt>
+                <dt className="text-zinc-500 w-28 shrink-0 mt-0.5">Access</dt>
                 <dd className="flex flex-wrap gap-1">
                   {serviceLabels.length === 0 ? (
                     <span className="text-zinc-500">Read-only</span>
