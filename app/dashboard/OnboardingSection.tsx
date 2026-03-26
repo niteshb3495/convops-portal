@@ -29,21 +29,7 @@ export default function OnboardingSection({ initialStep, isPro }: OnboardingSect
     await user.update({
       unsafeMetadata: { ...user.unsafeMetadata, onboardingStep: "live" },
     });
-    // Send setup success WhatsApp notification
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_CONVOPS_API_URL;
-      const apiKey = process.env.NEXT_PUBLIC_CONVOPS_API_KEY;
-      const accounts = (user.unsafeMetadata.awsAccounts as Array<{accountId: string}> | undefined) ?? [];
-      const accountId = accounts[0]?.accountId ?? "";
-      const waNumber = (user.unsafeMetadata.whatsappNumber as string | undefined) ?? "";
-      if (waNumber) {
-        await fetch(`${apiUrl}/notify`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-api-key": apiKey ?? "" },
-          body: JSON.stringify({ wa_phone: waNumber, account_id: accountId, type: "setup_success" }),
-        });
-      }
-    } catch (_) { /* non-fatal */ }
+    // No WA notification here — simulation only, no real account connected
     router.refresh();
   }
 
