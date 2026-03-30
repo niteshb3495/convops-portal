@@ -119,7 +119,7 @@ export default async function SecurityPage() {
                   Every action taken by ConvOps is logged with: timestamp, resource ARN, action type,
                   approved by (phone number), and outcome. Logs are retained for 90 days.
                   You can request a full export at any time by emailing{" "}
-                  <a href="mailto:nitesh@convops.io" className="text-zinc-300 hover:text-white underline">nitesh@convops.io</a>.
+                  <a href="mailto:info@convops.io" className="text-zinc-300 hover:text-white underline">info@convops.io</a>.
                 </p>
                 <div className="mt-3 rounded-lg bg-zinc-800/60 px-3 py-2">
                   <div className="font-mono text-xs text-zinc-500 space-y-0.5">
@@ -188,8 +188,8 @@ export default async function SecurityPage() {
         <div className="text-center">
           <p className="text-sm text-zinc-500">
             Questions about security or access?{" "}
-            <a href="mailto:nitesh@convops.io" className="text-zinc-300 hover:text-white underline">
-              nitesh@convops.io
+            <a href="mailto:info@convops.io" className="text-zinc-300 hover:text-white underline">
+              info@convops.io
             </a>
           </p>
         </div>

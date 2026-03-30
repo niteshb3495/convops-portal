@@ -47,7 +47,7 @@ export default async function DashboardPage() {
               </span>
             ) : (
               <Link
-                href="mailto:nitesh@convops.io?subject=ConvOps Pro Upgrade"
+                href="mailto:info@convops.io?subject=ConvOps Pro Upgrade"
                 className="inline-flex items-center gap-1 rounded-full bg-zinc-800 border border-zinc-600 px-2.5 py-1 text-xs font-medium text-zinc-300 hover:border-amber-600 hover:text-amber-400 transition-colors"
               >
                 Free · Upgrade to Pro
@@ -75,7 +75,7 @@ export default async function DashboardPage() {
               Upgrade to Pro to execute actions from chat.
             </p>
             <Link
-              href="mailto:nitesh@convops.io?subject=ConvOps Pro Upgrade"
+              href="mailto:info@convops.io?subject=ConvOps Pro Upgrade"
               className="shrink-0 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-950 hover:bg-amber-400 transition-colors"
             >
               Upgrade to Pro
