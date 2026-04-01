@@ -606,6 +606,15 @@ export default function ConnectPage() {
                     You can add more accounts from the dashboard.
                   </p>
                 </div>
+                {needsWhatsapp && (
+                  <div className="mt-3 rounded-lg border border-amber-800/50 bg-amber-950/30 px-4 py-3 max-w-md">
+                    <p className="text-sm text-amber-200 font-medium mb-1">Final step:</p>
+                    <p className="text-sm text-amber-300/90">
+                      Send <span className="font-mono font-semibold">Hi</span> to{" "}
+                      <span className="font-mono font-semibold">+4915511520510</span> on WhatsApp to activate your alerts.
+                    </p>
+                  </div>
+                )}
                 <button
                   onClick={() => router.push("/dashboard")}
                   className="mt-2 rounded-lg bg-zinc-50 px-6 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-white transition-colors"
