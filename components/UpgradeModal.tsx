@@ -98,6 +98,7 @@ export default function UpgradeModal({
         <ul className="mt-4 mb-6 space-y-2">
           {[
             "Fix this instantly from chat",
+            "AI-generated RCA on resolved incidents",
             "Restart, scale, reboot — one reply",
             "Automation rules for recurring incidents",
             "Team access + on-call routing",
