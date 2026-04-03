@@ -106,6 +106,7 @@ export default function ConnectPage() {
   // Step 1 fields
   const [accountId, setAccountId] = useState("");
   const [region, setRegion] = useState("eu-central-1");
+  const [environment, setEnvironment] = useState("production");
   const [alertChannel, setAlertChannel] = useState<AlertChannel>("both");
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [slackWebhook, setSlackWebhook] = useState("");
@@ -153,7 +154,7 @@ export default function ConnectPage() {
           "Content-Type": "application/json",
           "x-api-key": apiKey ?? "",
         },
-        body: JSON.stringify({ wa_phone: whatsappNumber, accountId, region, alertChannel, slackWebhook, snsTopicArn }),
+        body: JSON.stringify({ wa_phone: whatsappNumber, accountId, region, environment, alertChannel, slackWebhook, snsTopicArn }),
       });
       if (!res.ok) {
         const text = await res.text().catch(() => "");
@@ -170,6 +171,7 @@ export default function ConnectPage() {
               id: crypto.randomUUID(),
               accountId,
               region,
+              environment,
               alertChannel,
               whatsappNumber,
               slackWebhook,
@@ -305,6 +307,24 @@ export default function ConnectPage() {
                       {r.label}
                     </option>
                   ))}
+                </select>
+              </div>
+
+              {/* Environment */}
+              <div>
+                <label className="block text-sm font-medium text-zinc-300 mb-1.5">
+                  Environment
+                </label>
+                <select
+                  value={environment}
+                  onChange={(e) => setEnvironment(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3.5 py-2.5 text-sm text-zinc-100 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+                >
+                  <option value="production">Production</option>
+                  <option value="staging">Staging</option>
+                  <option value="development">Development</option>
+                  <option value="qa">QA</option>
+                  <option value="demo">Demo</option>
                 </select>
               </div>
 
