@@ -82,11 +82,12 @@ const CFN_TEMPLATE =
 
 type AlertChannel = "whatsapp" | "slack" | "both";
 
-function buildStackUrl(accountId: string, region: string, selectedServices: string[]) {
+function buildStackUrl(accountId: string, region: string, enableActions: boolean) {
   const params = new URLSearchParams({
     templateURL: CFN_TEMPLATE,
     stackName: "convops-setup",
-    [`param_CustomerExternalId`]: `CONVOPS-${accountId}`,
+    param_CustomerExternalId: `CONVOPS-${accountId}`,
+    param_EnableActions: enableActions ? "true" : "false",
   });
   return `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review?${params.toString()}`;
 }
@@ -111,7 +112,7 @@ export default function ConnectPage() {
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [slackWebhook, setSlackWebhook] = useState("");
   const [accountIdError, setAccountIdError] = useState("");
-  const [selectedServices, setSelectedServices] = useState<string[]>(["ecs", "ec2", "rds"]);
+  const [enableActions, setEnableActions] = useState(false);
 
   // Step 3 state
   const [verifying, setVerifying] = useState(false);
@@ -126,12 +127,6 @@ export default function ConnectPage() {
     !!accountId &&
     (!needsWhatsapp || !!whatsappNumber) &&
     (!needsSlack || !!slackWebhook);
-
-  function toggleService(id: string) {
-    setSelectedServices(prev =>
-      prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
-    );
-  }
 
   function validateAndNext() {
     if (!/^\d{12}$/.test(accountId)) {
@@ -175,7 +170,7 @@ export default function ConnectPage() {
               alertChannel,
               whatsappNumber,
               slackWebhook,
-              selectedServices,
+              enableActions,
               status: "connected",
               connectedAt: new Date().toISOString(),
             },
@@ -196,7 +191,7 @@ export default function ConnectPage() {
     { value: "both", label: "Both" },
   ];
 
-  const writeAccessLabel = "Read-only";
+  const writeAccessLabel = enableActions ? "Read + Actions" : "Read-only";
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50">
@@ -386,6 +381,62 @@ export default function ConnectPage() {
                   />
                 </div>
               )}
+
+              {/* Enable Actions checkbox */}
+              <div className={`rounded-xl border px-4 py-4 transition-colors ${enableActions ? "border-indigo-700 bg-indigo-950/30" : "border-zinc-700 bg-zinc-900"}`}>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <div className="relative flex-shrink-0 mt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={enableActions}
+                      onChange={(e) => setEnableActions(e.target.checked)}
+                      className="sr-only"
+                    />
+                    <div
+                      className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-colors ${
+                        enableActions ? "border-indigo-500 bg-indigo-600" : "border-zinc-600 bg-transparent"
+                      }`}
+                    >
+                      {enableActions && (
+                        <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-zinc-100">
+                      Allow ConvOps to take actions on alerts
+                    </p>
+                    <p className="text-xs text-zinc-400 mt-1">
+                      When you approve a suggestion in WhatsApp or Slack, ConvOps can act immediately. For example:
+                    </p>
+                    <ul className="mt-2 space-y-1 text-xs text-zinc-500">
+                      <li className="flex items-start gap-1.5">
+                        <span className="text-indigo-400 mt-px">›</span>
+                        Restart an ECS service spiking in memory or CPU
+                      </li>
+                      <li className="flex items-start gap-1.5">
+                        <span className="text-indigo-400 mt-px">›</span>
+                        Reboot an EC2 instance failing health checks
+                      </li>
+                      <li className="flex items-start gap-1.5">
+                        <span className="text-indigo-400 mt-px">›</span>
+                        Failover an RDS cluster during a database outage
+                      </li>
+                      <li className="flex items-start gap-1.5">
+                        <span className="text-indigo-400 mt-px">›</span>
+                        Invalidate a CloudFront cache after a bad deployment
+                      </li>
+                    </ul>
+                    {enableActions && (
+                      <p className="mt-2.5 text-xs text-indigo-300/80">
+                        Actions are only executed when you explicitly approve them — ConvOps never acts automatically.
+                      </p>
+                    )}
+                  </div>
+                </label>
+              </div>
             </div>
 
             <button
@@ -401,13 +452,13 @@ export default function ConnectPage() {
                 <svg className="h-3 w-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
-                Read-only by default
+                {enableActions ? "Read + action access" : "Read-only by default"}
               </span>
               <span className="flex items-center gap-1">
                 <svg className="h-3 w-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
-                No auto-actions
+                Approval required
               </span>
               <span className="flex items-center gap-1">
                 <svg className="h-3 w-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -481,7 +532,7 @@ export default function ConnectPage() {
             </div>
 
             <a
-              href={buildStackUrl(accountId, region, selectedServices)}
+              href={buildStackUrl(accountId, region, enableActions)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 w-full rounded-lg bg-amber-500 py-3 text-sm font-semibold text-zinc-950 hover:bg-amber-400 transition-colors"
