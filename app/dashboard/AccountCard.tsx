@@ -3,6 +3,8 @@
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import UsageMeter from "@/components/UsageMeter";
+import { getUserPlan } from "@/lib/plan";
 
 interface AwsAccount {
   id: string;
@@ -25,6 +27,7 @@ const ALERT_CHANNEL_LABELS: Record<string, string> = {
 export default function AccountCard({ account }: { account: AwsAccount }) {
   const { user } = useUser();
   const router = useRouter();
+  const plan = getUserPlan(user?.unsafeMetadata ?? {});
   const [removing, setRemoving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
@@ -178,7 +181,7 @@ export default function AccountCard({ account }: { account: AwsAccount }) {
         >
           {removing ? "Removing…" : "Remove"}
         </button>
-      </div>
+      {plan === "free" && <UsageMeter accountId={account.accountId} />}
     </div>
   );
 }
