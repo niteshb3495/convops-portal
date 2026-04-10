@@ -181,6 +181,7 @@ export default function AccountCard({ account }: { account: AwsAccount }) {
         >
           {removing ? "Removing…" : "Remove"}
         </button>
+      </div>
       {plan === "free" && <UsageMeter accountId={account.accountId} />}
     </div>
   );
